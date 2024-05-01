@@ -9,8 +9,7 @@ const int I = 0, __SZ = 10;
 /**
  * 表示每楼层外面板上的一个按钮
  */
-struct Button
-{
+struct Button {
     /**
      * 向上的按钮是否按下
      */
@@ -29,6 +28,7 @@ struct Button
     int downCnt = 0;
 
     Button() {}
+
     Button(const bool &u, const bool &d, const int &iu, const int &id)
             : up(u), down(d), upCnt(iu), downCnt(id) {}
 };
@@ -36,8 +36,7 @@ struct Button
 /**
  * 表示一个矫箱
  */
-struct Elevator
-{
+struct Elevator {
     /**
      * 表示是否有人
      */
@@ -61,6 +60,7 @@ struct Elevator
     int btn[__SZ];
 
     Elevator() {}
+
     Elevator(const size_t &o, const int &s, const int &l, const int &a, const bool &i)
             : status(s), level(l), autoModeFace(a), isFull(i) {}
 };
@@ -68,14 +68,12 @@ struct Elevator
 vector<Button> buttons(__SZ);
 vector<Elevator> elevators(__SZ);
 
-struct elevatorGame
-{
+struct elevatorGame {
     size_t roundId;
 
     elevatorGame() {}
 
-    void newGame()
-    {
+    void newGame() {
         roundId += 1;
         for (int i = 0; i < __SZ; i++)
             buttons[i] = Button(false, false, 0, 0);
@@ -83,17 +81,14 @@ struct elevatorGame
             elevators[i] = Elevator(I, 0, 0, 0, false);
     }
 
-    void getInfo()
-    {
+    void getInfo() {
         string directions, persons_up, persons_down, is_full, is_pressed;
-        for (int i = 1; i <= 6; i++)
-        {
+        for (int i = 1; i <= 6; i++) {
             cin >> directions >> persons_up >> persons_down;
             buttons[i] = Button(directions[0] == '1', directions[1] == '1', stoi(persons_up), stoi(persons_down));
         }
 
-        for (int i = 1; i <= 5; i++)
-        {
+        for (int i = 1; i <= 5; i++) {
             cin >> persons_up >> persons_down >> is_full >> is_pressed;
             int contains_rider = persons_up[0] == '1', level = stoi(persons_down);
             int auto_face_mode = persons_up[1] == '1', is_full_int = stoi(is_full);
@@ -105,27 +100,76 @@ struct elevatorGame
     }
 } GAME;
 
-string yourTurn()
-{
+inline int dis(Elevator elevator, int floor) {
+    return abs(elevator.level - floor - 1);
 }
 
-int main()
-{
-    while (true)
-    {
+inline bool available(Elevator ele) {
+    return !ele.status;
+}
+
+inline bool pressed(Button btn) {
+    return btn.down || btn.up;
+}
+
+string yourTurn() {
+    string res(elevators.size() + 1, 'S');
+    vector<int> closest_avail;
+    int floor_num[buttons.size()], elevator_num[elevators.size()];
+    int available_elevators = 0, busy_floors = 0;
+
+    for (int e = 0; e < elevators.size(); ++e) {
+        if (available(elevators[e])) {
+            elevator_num[available_elevators++] = e;
+        }
+    }
+    for (int floor = 0; floor < buttons.size(); ++floor) {
+        if (pressed(buttons[floor])) {
+            floor_num[busy_floors++] = floor;
+            closest_avail.push_back(0);
+        }
+    }
+
+    for (int f_i = 0; f_i < busy_floors; ++f_i) {
+        for (int e_i = 1; e_i < available_elevators; ++e_i) {
+            if (dis(elevators[e_i], floor_num[f_i]) < closest_avail[floor_num[f_i]]) {
+                bool duplicated = false;
+                for (int j = 0; j < f_i; ++j) {
+                    // duplication solver
+                    // closest_available can't have duplicated values
+                    if (closest_avail[j] == e_i) {
+                        duplicated = true;
+                        break;
+                    }
+                }
+                if (!duplicated) {
+                    closest_avail[f_i] = elevator_num[e_i];
+                }
+            }
+        }
+    }
+
+    for (int f_i = 0; f_i < busy_floors; ++f_i) {
+        int floor = floor_num[f_i];
+        int e_i = closest_avail[f_i];
+        res[e_i] = floor < elevators[e_i].level ? 'D' : 'U';
+    }
+    return res;
+}
+
+int main() {
+    while (true) {
         string first;
         cin >> first;
         if (first == "N")
             GAME.newGame();
         GAME.getInfo();
         string str = yourTurn();
-        transform(str.begin(), str.end(), str.begin(), [](unsigned char c)
-        { return toupper(c); });
+        transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return toupper(c); });
         regex r("[A-Z]");
         for (sregex_iterator it = sregex_iterator(str.begin(), str.end(), r);
              it != sregex_iterator();
-             ++it)
-        {
+             ++it) {
             smatch match = *it;
             cout << match.str() << " ";
         }
