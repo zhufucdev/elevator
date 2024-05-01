@@ -4,7 +4,7 @@
 
 using namespace std;
 
-const int I = 0, __SZ = 10;
+const int I = 0, FLOORS = 6, ELEVATORS = 5;
 
 /**
  * 表示每楼层外面板上的一个按钮
@@ -57,7 +57,7 @@ struct Elevator {
      * 矫箱内按钮是否按下。
      * 当btn[x] == y时，去y楼的按钮被按下
      */
-    int btn[__SZ];
+    int btn[FLOORS];
 
     Elevator() {}
 
@@ -65,8 +65,8 @@ struct Elevator {
             : status(s), level(l), autoModeFace(a), isFull(i) {}
 };
 
-vector<Button> buttons(__SZ);
-vector<Elevator> elevators(__SZ);
+vector<Button> buttons(FLOORS);
+vector<Elevator> elevators(ELEVATORS);
 
 struct elevatorGame {
     size_t roundId;
@@ -75,20 +75,20 @@ struct elevatorGame {
 
     void newGame() {
         roundId += 1;
-        for (int i = 0; i < __SZ; i++)
+        for (int i = 0; i < FLOORS; i++)
             buttons[i] = Button(false, false, 0, 0);
-        for (int i = 0; i < __SZ; i++)
+        for (int i = 0; i < ELEVATORS; i++)
             elevators[i] = Elevator(I, 0, 0, 0, false);
     }
 
     void getInfo() {
         string directions, persons_up, persons_down, is_full, is_pressed;
-        for (int i = 1; i <= 6; i++) {
+        for (int i = 1; i <= FLOORS; i++) {
             cin >> directions >> persons_up >> persons_down;
             buttons[i] = Button(directions[0] == '1', directions[1] == '1', stoi(persons_up), stoi(persons_down));
         }
 
-        for (int i = 1; i <= 5; i++) {
+        for (int i = 1; i <= ELEVATORS; i++) {
             cin >> persons_up >> persons_down >> is_full >> is_pressed;
             int contains_rider = persons_up[0] == '1', level = stoi(persons_down);
             int auto_face_mode = persons_up[1] == '1', is_full_int = stoi(is_full);
@@ -113,17 +113,17 @@ inline bool pressed(Button btn) {
 }
 
 string yourTurn() {
-    string res(elevators.size() + 1, 'S');
+    string res(ELEVATORS + 1, 'S');
     vector<int> closest_avail;
     int floor_num[buttons.size()], elevator_num[elevators.size()];
     int available_elevators = 0, busy_floors = 0;
 
-    for (int e = 0; e < elevators.size(); ++e) {
+    for (int e = 0; e < ELEVATORS; ++e) {
         if (available(elevators[e])) {
             elevator_num[available_elevators++] = e;
         }
     }
-    for (int floor = 0; floor < buttons.size(); ++floor) {
+    for (int floor = 0; floor < FLOORS; ++floor) {
         if (pressed(buttons[floor])) {
             floor_num[busy_floors++] = floor;
             closest_avail.push_back(0);
