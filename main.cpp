@@ -90,10 +90,10 @@ struct elevatorGame {
 
         for (int i = 1; i <= ELEVATORS; i++) {
             cin >> persons_up >> persons_down >> is_full >> is_pressed;
-            int contains_rider = persons_up[0] == '1', level = stoi(persons_down);
+            int occupied = persons_up[0] == '1', level = stoi(persons_down);
             int auto_face_mode = persons_up[1] == '1', is_full_int = stoi(is_full);
-            auto_face_mode = contains_rider ? auto_face_mode : 2; // 这啥鸡巴意思
-            elevators[i] = Elevator(I, contains_rider, level, auto_face_mode, is_full_int);
+            auto_face_mode = occupied ? auto_face_mode : 2; // 这啥鸡巴意思
+            elevators[i] = Elevator(I, occupied, level, auto_face_mode, is_full_int);
             for (size_t p = 0; p < is_pressed.size(); p++)
                 elevators[i].btn[p + 1] = is_pressed[p] == '1';
         }
