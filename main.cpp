@@ -113,7 +113,7 @@ inline bool pressed(Button btn) {
 }
 
 string yourTurn() {
-    string res(ELEVATORS + 1, 'S');
+    string res(ELEVATORS, 'S');
     vector<int> closest_avail;
     int floor_num[buttons.size()], elevator_num[elevators.size()];
     int available_elevators = 0, busy_floors = 0;
@@ -152,7 +152,7 @@ string yourTurn() {
     for (int f_i = 0; f_i < busy_floors; ++f_i) {
         int floor = floor_num[f_i];
         int e_i = closest_avail[f_i];
-        res[e_i] = floor < elevators[e_i].level ? 'D' : 'U';
+        res[e_i] = floor <= elevators[e_i].level ? 'D' : 'U';
     }
     return res;
 }
