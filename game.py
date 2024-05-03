@@ -129,9 +129,9 @@ class Floor:
         if comers > 0:
             self.__luck = 0
             for i in range(comers):
-                go = math.ceil((random() * len(self.__game.floors)))
+                go = round((random() * (len(self.__game.floors) - 1)))
                 while go == self.num:
-                    go = math.ceil((random() * len(self.__game.floors)))
+                    go = round((random() * (len(self.__game.floors) - 1)))
                 self.passengers.append(Passenger(go))
 
 
@@ -211,7 +211,7 @@ class Game:
         self.fps = 0
         self.size = self.width, self.height = 1280, 720
         self.running = False
-        self.tick_iter = 0
+        self.iter = 0
         self.speed = 2
 
     def init(self):
@@ -240,6 +240,7 @@ class Game:
             car.tick()
         for floor in self.floors:
             floor.tick()
+        self.iter += 1
 
     def __update(self):
         dp = self.__display
@@ -298,7 +299,7 @@ def main(executable: str):
     game.init()
     game.run_blocking()
 
-    print(f'unhappiness: {game.unhappiness}')
+    print(f'iter: {game.iter} unhappiness: {game.unhappiness}')
 
 
 if __name__ == '__main__':
