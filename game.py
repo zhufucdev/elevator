@@ -23,7 +23,6 @@ class CarriageState(Enum):
     IDLE = 0
     UP = 1
     DOWN = 2
-    FORCE_AUTONOMA = 3
 
 
 class Carriage:
@@ -74,14 +73,14 @@ class Carriage:
             return CarriageState.IDLE
 
     def tick(self):
-        if self.empty and self.state != CarriageState.FORCE_AUTONOMA:
+        if self.empty and self.state != CarriageState.IDLE:
             self.floor = self.__get_next_floor(overflow=True)
             # player can implicitly push the car to autonoma mode
             # when it's at the edge
             if self.floor < 0 or self.floor >= len(self.__game.floors):
                 self.floor = 0 if self.floor < 0 else len(self.__game.floors) - 1
-                self.state = CarriageState.FORCE_AUTONOMA
-        elif self.empty and self.state == CarriageState.FORCE_AUTONOMA:
+                self.state = CarriageState.IDLE
+        elif self.empty and self.state == CarriageState.IDLE:
             targetable_floors = list(filter(lambda f: f.waiting > 0, self.__game.floors))
             self.__take_passengers()
             if len(targetable_floors) > 0:
@@ -150,7 +149,7 @@ class FullAutonomaScheduler(Scheduler):
     def tick(self):
         for car in self._game.cars:
             if car.state == CarriageState.IDLE:
-                car.state = CarriageState.FORCE_AUTONOMA
+                car.state = CarriageState.IDLE
             print(car.num, car.floor, car.state)
 
 
@@ -184,7 +183,7 @@ class StdIOScheduler(Scheduler):
             for p in car.passengers:
                 pressed[p.go] = '1'
 
-            occupied = 0 if car.empty and car.state != CarriageState.FORCE_AUTONOMA else 1
+            occupied = 0 if car.empty and car.state != CarriageState.IDLE else 1
             state = 0 if car.state == CarriageState.DOWN else 1 if car.state == CarriageState.UP else 2
             is_full = 1 if car.full else 0
             self.writelines([
