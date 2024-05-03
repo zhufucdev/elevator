@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <regex>
+#include <fstream>
 
 using namespace std;
 
@@ -83,19 +84,19 @@ struct elevatorGame {
 
     void getInfo() {
         string directions, persons_up, persons_down, is_full, is_pressed;
-        for (int i = 1; i <= FLOORS; i++) {
+        for (int i = 0; i < FLOORS; i++) {
             cin >> directions >> persons_up >> persons_down;
             buttons[i] = Button(directions[0] == '1', directions[1] == '1', stoi(persons_up), stoi(persons_down));
         }
 
-        for (int i = 1; i <= ELEVATORS; i++) {
+        for (int i = 0; i < ELEVATORS; i++) {
             cin >> persons_up >> persons_down >> is_full >> is_pressed;
             int occupied = persons_up[0] == '1', level = stoi(persons_down);
             int auto_face_mode = persons_up[1] == '1', is_full_int = stoi(is_full);
             auto_face_mode = occupied ? auto_face_mode : 2; // 这啥鸡巴意思
             elevators[i] = Elevator(I, occupied, level, auto_face_mode, is_full_int);
             for (size_t p = 0; p < is_pressed.size(); p++)
-                elevators[i].btn[p + 1] = is_pressed[p] == '1';
+                elevators[i].btn[p] = is_pressed[p] == '1';
         }
     }
 } GAME;
@@ -113,9 +114,22 @@ inline bool pressed(Button btn) {
 }
 
 string yourTurn() {
+    ofstream ofs("elevator.log", ios_base::app);
+
+    ofs << "Buttons: " << endl;
+    for (int i = 0; i < buttons.size(); i++) {
+        auto button = buttons[i];
+        ofs << i << " ";
+        if (button.up)
+            ofs << "up " << button.upCnt << "; ";
+        if (button.down)
+            ofs << "down " << button.downCnt << "; ";
+    }
+    ofs << endl;
+
     string res(ELEVATORS, 'S');
     vector<int> closest_avail;
-    int floor_num[buttons.size()], elevator_num[elevators.size()];
+    int busy_floor[buttons.size()], elevator_num[elevators.size()];
     int available_elevators = 0, busy_floors = 0;
 
     for (int e = 0; e < ELEVATORS; ++e) {
@@ -125,14 +139,14 @@ string yourTurn() {
     }
     for (int floor = 0; floor < FLOORS; ++floor) {
         if (pressed(buttons[floor])) {
-            floor_num[busy_floors++] = floor;
+            busy_floor[busy_floors++] = floor;
             closest_avail.push_back(0);
         }
     }
 
     for (int f_i = 0; f_i < busy_floors; ++f_i) {
         for (int e_i = 1; e_i < available_elevators; ++e_i) {
-            if (dis(elevators[e_i], floor_num[f_i]) < closest_avail[floor_num[f_i]]) {
+            if (dis(elevators[e_i], busy_floor[f_i]) < closest_avail[busy_floor[f_i]]) {
                 bool duplicated = false;
                 for (int j = 0; j < f_i; ++j) {
                     // duplication solver
@@ -150,10 +164,15 @@ string yourTurn() {
     }
 
     for (int f_i = 0; f_i < busy_floors; ++f_i) {
-        int floor = floor_num[f_i];
+        int floor = busy_floor[f_i];
         int e_i = closest_avail[f_i];
-        res[e_i] = floor <= elevators[e_i].level ? 'D' : 'U';
+        ofs << floor << "->" << e_i << endl;
+        res[e_i] = floor < elevators[e_i].level ? 'D' : (floor == elevators[e_i].level ? 'S' : 'U');
     }
+
+    ofs << res << endl;
+    ofs.flush();
+    ofs.close();
     return res;
 }
 
