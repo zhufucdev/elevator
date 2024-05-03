@@ -114,19 +114,6 @@ inline bool pressed(Button btn) {
 }
 
 string yourTurn() {
-    ofstream ofs("elevator.log", ios_base::app);
-
-    ofs << "Buttons: " << endl;
-    for (int i = 0; i < buttons.size(); i++) {
-        auto button = buttons[i];
-        ofs << i << " ";
-        if (button.up)
-            ofs << "up " << button.upCnt << "; ";
-        if (button.down)
-            ofs << "down " << button.downCnt << "; ";
-    }
-    ofs << endl;
-
     string res(ELEVATORS, 'S');
     vector<int> closest_avail;
     int busy_floor[buttons.size()], elevator_num[elevators.size()];
@@ -166,13 +153,9 @@ string yourTurn() {
     for (int f_i = 0; f_i < busy_floors; ++f_i) {
         int floor = busy_floor[f_i];
         int e_i = closest_avail[f_i];
-        ofs << floor << "->" << e_i << endl;
         res[e_i] = floor < elevators[e_i].level ? 'D' : (floor == elevators[e_i].level ? 'S' : 'U');
     }
 
-    ofs << res << endl;
-    ofs.flush();
-    ofs.close();
     return res;
 }
 
