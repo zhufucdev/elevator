@@ -47,11 +47,12 @@ class Carriage:
     def full(self):
         return self.riders >= self.capacity
 
-    def __get_next_floor(self):
+    def __get_next_floor(self, overflow: bool = False):
+        floors = len(self.__game.floors)
         if self.state == CarriageState.UP:
-            return self.floor + 1
+            return self.floor + 1 if self.floor < floors - 1 or overflow else self.floor
         elif self.state == CarriageState.DOWN:
-            return self.floor - 1
+            return self.floor - 1 if self.floor > 0 or overflow else self.floor
         else:
             return self.floor
 
@@ -74,7 +75,7 @@ class Carriage:
 
     def tick(self):
         if self.empty and self.state != CarriageState.FORCE_AUTONOMA:
-            self.floor = self.__get_next_floor()
+            self.floor = self.__get_next_floor(overflow=True)
             # player can implicitly push the car to autonoma mode
             # when it's at the edge
             if self.floor < 0 or self.floor > len(self.__game.floors):
@@ -104,6 +105,8 @@ class Carriage:
                 self.state = CarriageState.UP
             else:
                 self.state = CarriageState.DOWN
+
+            self.floor = self.__get_next_floor()
 
 
 class Floor:
@@ -148,7 +151,7 @@ class FullAutonomaScheduler(Scheduler):
         for car in self._game.cars:
             if car.state == CarriageState.IDLE:
                 car.state = CarriageState.FORCE_AUTONOMA
-            print(car.num, car.floor)
+            print(car.num, car.floor, car.state)
 
 
 class StdIOScheduler(Scheduler):
@@ -226,7 +229,7 @@ class Game:
                 self.__on_event(event)
             self.__update()
             pygame.display.update()
-            if frame % (fps / (self.speed + 1)) == 0:
+            if frame % int(fps / (self.speed + 1)) == 0:
                 self.__tick()
             clock.tick(fps)
             frame += 1
