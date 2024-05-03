@@ -264,10 +264,11 @@ class Game:
             pygame.draw.rect(dp, CAR_COLOR, (car_x, car_y, car_width - 2 * LINE_WIDTH, car_height), LINE_WIDTH)
 
             if len(car.passengers) > 0:
-                passenger_width = (car_width - 2 * LINE_WIDTH) / len(car.passengers)
+                passenger_width = (car_width - 4 * LINE_WIDTH) / len(car.passengers)
                 for j, passenger in enumerate(car.passengers):
                     pygame.draw.circle(dp, FLOOR_COLORS[passenger.go],
-                                       (car_x + passenger_width * j, car_y - car_height - PASSENGER_RADIUS),
+                                       (car_x + passenger_width * j + PASSENGER_RADIUS + LINE_WIDTH,
+                                        car_y + car_height - PASSENGER_RADIUS - LINE_WIDTH),
                                        PASSENGER_RADIUS)
 
         pygame.display.set_caption(f'speed {self.speed + 1}')
