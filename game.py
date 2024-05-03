@@ -78,7 +78,7 @@ class Carriage:
             self.floor = self.__get_next_floor(overflow=True)
             # player can implicitly push the car to autonoma mode
             # when it's at the edge
-            if self.floor < 0 or self.floor > len(self.__game.floors):
+            if self.floor < 0 or self.floor >= len(self.__game.floors):
                 self.floor = 0 if self.floor < 0 else len(self.__game.floors) - 1
                 self.state = CarriageState.FORCE_AUTONOMA
         elif self.empty and self.state == CarriageState.FORCE_AUTONOMA:
@@ -158,36 +158,46 @@ class StdIOScheduler(Scheduler):
     def __init__(self, executable: str, game: 'Game'):
         super().__init__(game)
         self.process = Popen(executable, text=True, stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-        self.__writelines(('N',))
+        self.writelines(('N',))
+        self.__first = False
 
-    def __writelines(self, lines):
+    def writelines(self, lines):
         for line in lines:
             self.process.stdin.write(f'{line}\n')
         self.process.stdin.flush()
 
     def tick(self):
+        if not self.__first:
+            self.__first = True
+        else:
+            self.writelines(['C'])
+
         for floor in self._game.floors:
             ups = sum(1 for _ in filter(lambda p: p.go > floor.num, floor.passengers))
             downs = sum(1 for _ in filter(lambda p: p.go < floor.num, floor.passengers))
-            has_up = '1' if ups > 0 else '0'
-            has_down = '1' if downs else '0'
-            self.__writelines([has_up, has_down, str(ups), str(downs)])  # buttons
+            has_up = 1 if ups > 0 else 0
+            has_down = 1 if downs > 0 else 0
+            self.writelines([f'{has_up}{has_down}', str(ups), str(downs)])  # buttons
 
         for car in self._game.cars:
             pressed = list('0' for _ in range(len(self._game.floors)))
             for p in car.passengers:
                 pressed[p.go] = '1'
 
-            self.__writelines([
-                f'{1 if car.empty and car.state != CarriageState.FORCE_AUTONOMA else 0}{0 if car.state == CarriageState.DOWN else 1 if car.state == CarriageState.UP else 2}',
+            occupied = 0 if car.empty and car.state != CarriageState.FORCE_AUTONOMA else 1
+            state = 0 if car.state == CarriageState.DOWN else 1 if car.state == CarriageState.UP else 2
+            is_full = 1 if car.full else 0
+            self.writelines([
+                f'{occupied}{state}',
                 f'{car.floor}',
-                f'{1 if car.full else 0}',
+                f'{is_full}',
                 "".join(pressed)
             ])  # elevators
 
         sc = self.process.stdout.readline().split()
         for i, car in enumerate(self._game.cars):
             car.state = CarriageState.IDLE if sc[i] == 'S' else CarriageState.UP if sc[i] == 'U' else CarriageState.DOWN
+            print(car.num, car.floor, car.state)
 
 
 SEPARATOR_X = 200
@@ -229,7 +239,7 @@ class Game:
                 self.__on_event(event)
             self.__update()
             pygame.display.update()
-            if frame % int(fps / (self.speed + 1)) == 0:
+            if self.speed > 0 and frame % int(fps / self.speed) == 0:
                 self.__tick()
             clock.tick(fps)
             frame += 1
@@ -275,7 +285,7 @@ class Game:
                                         car_y + car_height - PASSENGER_RADIUS - LINE_WIDTH),
                                        PASSENGER_RADIUS)
 
-        pygame.display.set_caption(f'speed {self.speed + 1}')
+        pygame.display.set_caption(f'speed {self.speed}')
 
     def __on_event(self, event: pygame.event.Event):
         if event.type == pygame.QUIT:
@@ -294,8 +304,8 @@ class Game:
 
 
 def main(executable: str):
-    # game = Game(cars=5, floors=6, scheduler=StdIOScheduler, executable=executable)
-    game = Game(cars=5, floors=6, scheduler=FullAutonomaScheduler)
+    game = Game(cars=5, floors=6, scheduler=StdIOScheduler, executable=executable)
+    # game = Game(cars=5, floors=6, scheduler=FullAutonomaScheduler)
     game.init()
     game.run_blocking()
 
