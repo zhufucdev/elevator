@@ -119,6 +119,7 @@ string yourTurn() {
     {
         if (elevators[eid].status == 0)
         {
+
             int currentLevel = elevators[eid].level;
 
             if (buttons[currentLevel].up && !elevators[eid].isFull)
@@ -150,6 +151,14 @@ string yourTurn() {
                 }
                 else
                 {
+                    while (currentLevel != eid + 1) {
+                        if (currentLevel < eid + 1) {
+                            res[eid] = 'U';
+                        }
+                        else if (currentLevel > eid + 1) {
+                            res[eid] = 'D';
+                        }
+                    }
                     res[eid] = 'S';
                 }
             }
