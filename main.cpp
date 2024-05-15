@@ -115,51 +115,36 @@ inline bool pressed(Button btn) {
 
 string yourTurn() {
     string res = "UUUUU";
-    for (int eid = 0; eid < ELEVATORS; eid++)
-    {
-        if (elevators[eid].status == 0)
-        {
-
+    for (int eid = 0; eid < ELEVATORS; eid++) {
+        if (elevators[eid].status == 0) {
             int currentLevel = elevators[eid].level;
 
-            if (buttons[currentLevel].up && !elevators[eid].isFull)
-            {
+            if (buttons[currentLevel].up && !elevators[eid].isFull) {
                 res[eid] = 'S';
-            }
-            else if (buttons[currentLevel].down && !elevators[eid].isFull)
-            {
+            } else if (buttons[currentLevel].down && !elevators[eid].isFull) {
                 res[eid] = 'S';
-            }
-            else
-            {
+            } else {
                 int nearestLevel = -1;
                 int minDistance = INT_MAX;
-                for (int bid = 0; bid < FLOORS; bid++)
-                {
-                    if ((buttons[bid].up || buttons[bid].down) && abs(bid - currentLevel) < minDistance)
-                    {
+                for (int bid = 0; bid < FLOORS; bid++) {
+                    if ((buttons[bid].up || buttons[bid].down) && abs(bid - currentLevel) < minDistance) {
                         nearestLevel = bid;
                         minDistance = abs(bid - currentLevel);
                     }
                 }
-                if (nearestLevel != -1)
-                {
+                if (nearestLevel != -1) {
                     if (nearestLevel > currentLevel)
                         res[eid] = 'U';
                     else if (nearestLevel < currentLevel)
                         res[eid] = 'D';
-                }
-                else
-                {
-                    while (currentLevel != eid + 1) {
-                        if (currentLevel < eid + 1) {
-                            res[eid] = 'U';
-                        }
-                        else if (currentLevel > eid + 1) {
-                            res[eid] = 'D';
-                        }
+                } else {
+                    if (currentLevel > eid) {
+                        res[eid] = 'D';
+                    } else if (currentLevel < eid) {
+                        res[eid] = 'U';
+                    } else {
+                        res[eid] = 'S';
                     }
-                    res[eid] = 'S';
                 }
             }
         }

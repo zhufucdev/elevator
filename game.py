@@ -125,6 +125,7 @@ class Floor:
         self.unhappiness += self.waiting
         self.__luck += random() * self.popularity / 60
         comers = round(self.__luck)
+        return
         if comers > 0:
             self.__luck = 0
             for i in range(comers):
@@ -188,7 +189,7 @@ class StdIOScheduler(Scheduler):
             is_full = 1 if car.full else 0
             self.writelines([
                 f'{occupied}{state}',
-                f'{car.floor}',
+                f'{car.floor + 1}',
                 f'{is_full}',
                 "".join(pressed)
             ])  # elevators
