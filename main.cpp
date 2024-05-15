@@ -114,48 +114,47 @@ inline bool pressed(Button btn) {
 }
 
 string yourTurn() {
-    string res(ELEVATORS, 'S');
-    vector<int> closest_avail;
-    int busy_floor[buttons.size()], elevator_num[elevators.size()];
-    int available_elevators = 0, busy_floors = 0;
+    string res = "UUUUU";
+    for (int eid = 0; eid < ELEVATORS; eid++)
+    {
+        if (elevators[eid].status == 0)
+        {
+            int currentLevel = elevators[eid].level;
 
-    for (int e = 0; e < ELEVATORS; ++e) {
-        if (available(elevators[e])) {
-            elevator_num[available_elevators++] = e;
-        }
-    }
-    for (int floor = 0; floor < FLOORS; ++floor) {
-        if (pressed(buttons[floor])) {
-            busy_floor[busy_floors++] = floor;
-            closest_avail.push_back(0);
-        }
-    }
-
-    for (int f_i = 0; f_i < busy_floors; ++f_i) {
-        for (int e_i = 1; e_i < available_elevators; ++e_i) {
-            if (dis(elevators[e_i], busy_floor[f_i]) < closest_avail[busy_floor[f_i]]) {
-                bool duplicated = false;
-                for (int j = 0; j < f_i; ++j) {
-                    // duplication solver
-                    // closest_available can't have duplicated values
-                    if (closest_avail[j] == e_i) {
-                        duplicated = true;
-                        break;
+            if (buttons[currentLevel].up && !elevators[eid].isFull)
+            {
+                res[eid] = 'S';
+            }
+            else if (buttons[currentLevel].down && !elevators[eid].isFull)
+            {
+                res[eid] = 'S';
+            }
+            else
+            {
+                int nearestLevel = -1;
+                int minDistance = INT_MAX;
+                for (int bid = 0; bid < FLOORS; bid++)
+                {
+                    if ((buttons[bid].up || buttons[bid].down) && abs(bid - currentLevel) < minDistance)
+                    {
+                        nearestLevel = bid;
+                        minDistance = abs(bid - currentLevel);
                     }
                 }
-                if (!duplicated) {
-                    closest_avail[f_i] = elevator_num[e_i];
+                if (nearestLevel != -1)
+                {
+                    if (nearestLevel > currentLevel)
+                        res[eid] = 'U';
+                    else if (nearestLevel < currentLevel)
+                        res[eid] = 'D';
+                }
+                else
+                {
+                    res[eid] = 'S';
                 }
             }
         }
     }
-
-    for (int f_i = 0; f_i < busy_floors; ++f_i) {
-        int floor = busy_floor[f_i];
-        int e_i = closest_avail[f_i];
-        res[e_i] = floor < elevators[e_i].level ? 'D' : (floor == elevators[e_i].level ? 'S' : 'U');
-    }
-
     return res;
 }
 
