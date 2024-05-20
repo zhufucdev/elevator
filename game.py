@@ -125,7 +125,6 @@ class Floor:
         self.unhappiness += self.waiting
         self.__luck += random() * self.popularity / 60
         comers = round(self.__luck)
-        return
         if comers > 0:
             self.__luck = 0
             for i in range(comers):
@@ -214,7 +213,7 @@ class Game:
     __font: pygame.font.Font
 
     def __init__(self, cars: int, floors: int, scheduler: type[Scheduler], **kwargs):
-        self.floors = list(Floor(i, self, math.ceil(math.e ** (3 - i))) for i in range(floors))
+        self.floors = list(Floor(i, self, 100 if i % 2 == 0 else 0) for i in range(floors))
         self.cars = list(Carriage(i, self) for i in range(cars))
         self.scheduler = scheduler(game=self, **kwargs)
 

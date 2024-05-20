@@ -30,8 +30,8 @@ struct Button {
 
     Button() {}
 
-    Button(const bool &u, const bool &d, const int &iu, const int &id)
-            : up(u), down(d), upCnt(iu), downCnt(id) {}
+    Button(const bool& u, const bool& d, const int& iu, const int& id)
+        : up(u), down(d), upCnt(iu), downCnt(id) {}
 };
 
 /**
@@ -60,10 +60,11 @@ struct Elevator {
      */
     int btn[FLOORS];
 
+
     Elevator() {}
 
-    Elevator(const size_t &o, const int &s, const int &l, const int &a, const bool &i)
-            : status(s), level(l), autoModeFace(a), isFull(i) {}
+    Elevator(const size_t& o, const int& s, const int& l, const int& a, const bool& i)
+        : status(s), level(l), autoModeFace(a), isFull(i) {}
 };
 
 vector<Button> buttons(FLOORS);
@@ -115,34 +116,52 @@ inline bool pressed(Button btn) {
 
 string yourTurn() {
     string res = "UUUUU";
+    vector<int> waitingTime(FLOORS, 0);
+
+    // 计算每层楼的不爽值（等待时间）
+    for (int i = 0; i < FLOORS; i++) {
+        if (buttons[i].up) waitingTime[i] += buttons[i].upCnt;
+        if (buttons[i].down) waitingTime[i] += buttons[i].downCnt;
+    }
+
+    // 遍历每一个电梯
     for (int eid = 0; eid < ELEVATORS; eid++) {
         if (elevators[eid].status == 0) {
             int currentLevel = elevators[eid].level;
 
             if (buttons[currentLevel].up && !elevators[eid].isFull) {
                 res[eid] = 'S';
-            } else if (buttons[currentLevel].down && !elevators[eid].isFull) {
+            }
+            else if (buttons[currentLevel].down && !elevators[eid].isFull) {
                 res[eid] = 'S';
-            } else {
-                int nearestLevel = -1;
-                int minDistance = INT_MAX;
+            }
+            else {
+                int highestWaitingLevel = -1;
+                int highestWaitingTime = -1;
+
+                // 找到不爽值最高的楼层
                 for (int bid = 0; bid < FLOORS; bid++) {
-                    if ((buttons[bid].up || buttons[bid].down) && abs(bid - currentLevel) < minDistance) {
-                        nearestLevel = bid;
-                        minDistance = abs(bid - currentLevel);
+                    if ((buttons[bid].up || buttons[bid].down) && waitingTime[bid] > highestWaitingTime) {
+                        highestWaitingLevel = bid;
+                        highestWaitingTime = waitingTime[bid];
                     }
                 }
-                if (nearestLevel != -1) {
-                    if (nearestLevel > currentLevel)
+
+                // 如果找到了不爽值最高的楼层
+                if (highestWaitingLevel != -1) {
+                    if (highestWaitingLevel > currentLevel)
                         res[eid] = 'U';
-                    else if (nearestLevel < currentLevel)
+                    else if (highestWaitingLevel < currentLevel)
                         res[eid] = 'D';
-                } else {
+                }
+                else {
                     if (currentLevel > eid) {
                         res[eid] = 'D';
-                    } else if (currentLevel < eid) {
+                    }
+                    else if (currentLevel < eid) {
                         res[eid] = 'U';
-                    } else {
+                    }
+                    else {
                         res[eid] = 'S';
                     }
                 }
@@ -163,8 +182,8 @@ int main() {
         transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return toupper(c); });
         regex r("[A-Z]");
         for (sregex_iterator it = sregex_iterator(str.begin(), str.end(), r);
-             it != sregex_iterator();
-             ++it) {
+            it != sregex_iterator();
+            ++it) {
             smatch match = *it;
             cout << match.str() << " ";
         }
